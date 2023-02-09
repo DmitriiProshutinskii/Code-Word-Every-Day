@@ -1,35 +1,41 @@
 import logging
-from telegram import Update
-from telegram.ext import filters, MessageHandler, ApplicationBuilder, CommandHandler, ContextTypes
 
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+from aiogram import Bot, Dispatcher, executor, types
+from aiogram.types import ParseMode
+
+from random_text import RandomText
+
+API_TOKEN = '6155620305:AAGwEpoMOP-iueHmRZRfMTwBJcyp_7MLLNM'
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+
+# Initialize bot and dispatcher
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher(bot)
+
+rnd_tip = RandomText()
 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="**Что такое чистая фунция?**\n\nЧистая функция -- это ...")
+@dp.message_handler(commands=['start', 'help'])
+async def send_welcome(message: types.Message):
+    """
+    This handler will be called when user sends `/start` or `/help` command
+    """
+    await message.reply("Hi!\nI'm EchoBot!\nPowered by aiogram.")
 
 
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=update.message.text)
-
-
-async def caps(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    text_caps = ' '.join(context.args).upper()
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=text_caps)
+# @dp.message_handler()
+# async def echo(message: types.Message):
+#     # old style:
+#     # await bot.send_message(message.chat.id, message.text)
+#
+#     await message.answer(message.text)
+@dp.message_handler(commands=['tip'])
+async def new_tip(message: types.Message):
+    tip = rnd_tip.get_random_text()
+    await message.answer(tip.__repr__(), parse_mode=tip.parse_mode)
 
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token('6155620305:AAGwEpoMOP-iueHmRZRfMTwBJcyp_7MLLNM').build()
-
-    start_handler = CommandHandler('start', start)
-    caps_handler = CommandHandler('caps', caps)
-    echo_handler = MessageHandler(filters.TEXT & (~filters.COMMAND), echo)
-
-    application.add_handler(start_handler)
-    application.add_handler(echo_handler)
-    application.add_handler(caps_handler)
-
-    application.run_polling()
+    executor.start_polling(dp, skip_updates=True)
