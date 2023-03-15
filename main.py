@@ -3,9 +3,11 @@ import logging
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.types import ParseMode
 
-from random_text import RandomText
+from service import Service
 
-API_TOKEN = '6155620305:AAGwEpoMOP-iueHmRZRfMTwBJcyp_7MLLNM'
+f = open(".api_telegram", "r")
+API_TOKEN = f.read()
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -14,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot)
 
-rnd_tip = RandomText()
+records = Service().get_tips("appCixhrwO39DH3D5", "tbly63ArWXouoPqVR")
 
 
 @dp.message_handler(commands=['start', 'help'])
@@ -33,7 +35,7 @@ async def send_welcome(message: types.Message):
 #     await message.answer(message.text)
 @dp.message_handler(commands=['tip'])
 async def new_tip(message: types.Message):
-    tip = rnd_tip.get_random_text()
+    tip = records.get_random_text()
     await message.answer(tip.__repr__(), parse_mode=tip.parse_mode)
 
 
